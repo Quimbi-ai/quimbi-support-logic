@@ -1,0 +1,38 @@
+{
+  "ticket": {
+    "id": 246402999,
+    "subject": "Accidental charge - Contact Us",
+    "customer": {
+      "id": 510999888,
+      "email": "ajax.sori@example.com",
+      "firstname": "Ajax",
+      "lastname": "Sori",
+      "external_id": null
+    },
+    "integrations": {
+      "82185": {
+        "orders": [{
+          "id": 6525999888777,
+          "order_number": 224055,
+          "name": "#224055",
+          "financial_status": "pending",
+          "fulfillment_status": "unfulfilled",
+          "created_at": "2025-12-29T10:30:00Z",
+          "line_items": [
+            {
+              "title": "Premium Quilting Thread - Set of 12",
+              "quantity": 1,
+              "price": "29.99"
+            }
+          ]
+        }]
+      }
+    }
+  },
+  "message": {
+    "id": 606999777,
+    "body_text": "i just ordered 1 item and i accidentally selected the additional charge and it says i owe 16 dollars but i dont have the money, it was like 30 dollars and now it wants me to pay 45",
+    "subject": "Accidental charge - Contact Us",
+    "from_agent": false
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "id": 12345678,
+  "uri": "https://lindas.gorgias.com/api/tickets/12345678",
+  "external_id": null,
+  "language": "en",
+  "status": "open",
+  "priority": "normal",
+  "channel": "email",
+  "via": "email",
+  "customer": {
+    "id": 98765432,
+    "external_id": "cust_shopify_123456",
+    "email": "sharonbrz@verizon.net",
+    "name": "Sharon Brown",
+    "firstname": "Sharon",
+    "lastname": "Brown"
+  },
+  "subject": "Question about my order #1001",
+  "tags": [],
+  "created_datetime": "2024-12-29T18:00:00.000000Z",
+  "updated_datetime": "2024-12-29T18:00:00.000000Z",
+  "messages": [
+    {
+      "id": 111111111,
+      "message_id": "<test@email.com>",
+      "from_agent": false,
+      "sender": {
+        "email": "sharonbrz@verizon.net",
+        "name": "Sharon Brown"
+      },
+      "subject": "Question about my order #1001",
+      "body_text": "Hi, I received part of my order but I'm missing the premium scissors. My order number is #1001. Can you help me find out where it is?",
+      "body_html": "<p>Hi, I received part of my order but I'm missing the premium scissors. My order number is #1001. Can you help me find out where it is?</p>",
+      "created_datetime": "2024-12-29T18:00:00.000000Z"
+    }
+  ],
+  "custom_fields": {},
+  "assignee_user": null,
+  "assignee_team": null
+}

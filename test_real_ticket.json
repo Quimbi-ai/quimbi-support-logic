@@ -1,0 +1,30 @@
+{
+  "ticket": {
+    "id": 246402461,
+    "subject": "Order status - Contact Us",
+    "customer": {
+      "id": 510146235,
+      "email": "lorilynn26@hotmail.com",
+      "firstname": "Lori",
+      "lastname": "Westendorf",
+      "external_id": null
+    },
+    "integrations": {
+      "82185": {
+        "orders": [{
+          "id": 6525640278271,
+          "order_number": 218874,
+          "name": "#218874",
+          "financial_status": "paid",
+          "fulfillment_status": "partial"
+        }]
+      }
+    }
+  },
+  "message": {
+    "id": 606589613,
+    "body_text": "I order a roll of Hobb's Heirloom batting on December 11th, has this been shipped?<br>I have no heard anything. Please let me know. <br>Thank you",
+    "subject": "Order status - Contact Us",
+    "from_agent": false
+  }
+}
