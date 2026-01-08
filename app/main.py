@@ -26,6 +26,7 @@ async def lifespan(app: FastAPI):
     from app.services.cache import redis_client
     from app.services.quimbi_client import quimbi_client
     import logging
+    import asyncio
 
     logger = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ async def lifespan(app: FastAPI):
     app.state.redis_healthy = False
     app.state.quimbi_healthy = False
 
-    # Initialize database with error handling
+    # Initialize database with error handling (REQUIRED - blocks startup)
     logger.info("Initializing database...")
     try:
         await init_db()
@@ -44,30 +45,38 @@ async def lifespan(app: FastAPI):
         logger.error(f"⚠️  Database initialization failed: {e}")
         logger.warning("App will start in degraded mode - database operations will fail")
 
-    # Initialize Redis with error handling
-    logger.info("Connecting to Redis...")
-    try:
-        await redis_client.connect()
-        app.state.redis_healthy = True
-        logger.info("✅ Redis connected successfully")
-    except Exception as e:
-        logger.error(f"⚠️  Redis connection failed: {e}")
-        logger.warning("App will start without Redis caching")
+    # Initialize Redis and Quimbi in BACKGROUND (non-blocking for fast startup)
+    async def init_background_services():
+        """Initialize optional services in background."""
+        # Initialize Redis
+        logger.info("Connecting to Redis...")
+        try:
+            await redis_client.connect()
+            app.state.redis_healthy = True
+            logger.info("✅ Redis connected successfully")
+        except Exception as e:
+            logger.error(f"⚠️  Redis connection failed: {e}")
+            logger.warning("App will continue without Redis caching")
 
-    # Initialize Quimbi client with error handling
-    logger.info("Initializing Quimbi client...")
-    try:
-        await quimbi_client.initialize()
-        app.state.quimbi_healthy = True
-        logger.info("✅ Quimbi client initialized successfully")
-    except Exception as e:
-        logger.error(f"⚠️  Quimbi client initialization failed: {e}")
-        logger.warning("App will start without Quimbi intelligence features")
+        # Initialize Quimbi client
+        logger.info("Initializing Quimbi client...")
+        try:
+            await quimbi_client.initialize()
+            app.state.quimbi_healthy = True
+            logger.info("✅ Quimbi client initialized successfully")
+        except Exception as e:
+            logger.error(f"⚠️  Quimbi client initialization failed: {e}")
+            logger.warning("App will continue without Quimbi intelligence features")
 
-    if app.state.db_healthy and app.state.redis_healthy and app.state.quimbi_healthy:
-        logger.info("✅ All services initialized successfully!")
-    else:
-        logger.warning(f"⚠️  App started in degraded mode - DB: {app.state.db_healthy}, Redis: {app.state.redis_healthy}, Quimbi: {app.state.quimbi_healthy}")
+        # Log final status
+        if app.state.db_healthy and app.state.redis_healthy and app.state.quimbi_healthy:
+            logger.info("✅ All services initialized successfully!")
+        else:
+            logger.warning(f"⚠️  App running in degraded mode - DB: {app.state.db_healthy}, Redis: {app.state.redis_healthy}, Quimbi: {app.state.quimbi_healthy}")
+
+    # Start background initialization (don't await - allows fast startup)
+    asyncio.create_task(init_background_services())
+    logger.info("✅ App ready! Background services initializing...")
 
     yield
 
