@@ -23,5 +23,4 @@ COPY app/ ./app/
 EXPOSE 8000
 
 # Run application with PORT environment variable support
-# Use shell form to enable variable expansion
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
