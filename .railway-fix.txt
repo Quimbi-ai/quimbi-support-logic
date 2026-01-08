@@ -1,0 +1,1 @@
+# DATABASE_URL format fixed: postgresql+asyncpg:// Thu Jan  8 10:14:00 PST 2026
