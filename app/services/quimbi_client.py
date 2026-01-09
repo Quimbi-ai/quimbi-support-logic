@@ -13,6 +13,7 @@ Features:
 - Automatic retry with exponential backoff
 - Redis caching for intelligence data
 - Graceful error handling with fallback data
+- Customer ID resolution (support IDs → e-commerce IDs)
 """
 import httpx
 from typing import Dict, Any, Optional, List
@@ -21,6 +22,8 @@ import logging
 import asyncio
 from app.core.config import settings
 from app.services.cache import redis_client
+from app.services.customer_resolver import customer_resolver
+from app.database import get_db
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +97,7 @@ class QuimbiClient:
         Endpoint: POST /api/intelligence/analyze
 
         Args:
-            customer_id: Customer ID to analyze
+            customer_id: Customer ID to analyze (support ID or e-commerce ID)
             orders: Optional recent orders for richer context
             interactions: Optional interaction history
             use_cache: Whether to use cached data (default: True)
@@ -131,16 +134,47 @@ class QuimbiClient:
 
         Cache TTL: 15 minutes (configurable via quimbi_cache_intelligence_ttl)
         """
-        # Try cache first
+        # STEP 1: Resolve support customer ID to e-commerce ID if needed
+        original_customer_id = customer_id
+        ecommerce_customer_id = customer_id
+
+        # If customer ID starts with "cust_", resolve to e-commerce ID
+        if customer_id.startswith("cust_"):
+            logger.info(f"Resolving support customer ID: {customer_id}")
+
+            # Get database session
+            async for db in get_db():
+                resolved_id = await customer_resolver.resolve_to_ecommerce_id(
+                    db, customer_id
+                )
+
+                if resolved_id:
+                    ecommerce_customer_id = str(resolved_id)
+                    logger.info(
+                        f"✅ Customer ID resolved: {customer_id} → {ecommerce_customer_id}"
+                    )
+                else:
+                    logger.warning(
+                        f"⚠️  No e-commerce mapping for {customer_id}. "
+                        f"AI Brain will not have access to behavioral intelligence."
+                    )
+                    # Return fallback intelligence for unmapped customers
+                    return self._get_fallback_intelligence(customer_id)
+
+                break  # Exit after first iteration
+
+        # STEP 2: Try cache first (use e-commerce ID for cache key)
         if use_cache:
-            cached = await self._get_cached_intelligence(customer_id)
+            cached = await self._get_cached_intelligence(ecommerce_customer_id)
             if cached:
-                logger.debug(f"Cache hit for customer {customer_id}")
+                logger.debug(f"Cache hit for customer {ecommerce_customer_id}")
+                # Add original support ID to response
+                cached["support_customer_id"] = original_customer_id
                 return cached
 
-        # Build request body
+        # STEP 3: Build request body with e-commerce customer ID
         request_body = {
-            "customer_id": customer_id,
+            "customer_id": ecommerce_customer_id,  # Use e-commerce ID!
             "context": {}
         }
 
@@ -150,18 +184,23 @@ class QuimbiClient:
         if interactions:
             request_body["context"]["interactions"] = interactions
 
-        # Call Quimbi API
+        # STEP 4: Call Quimbi API (AI Brain)
         try:
             response = await self._post_with_retry(
                 "/api/intelligence/analyze",
                 request_body
             )
 
-            # Cache result
-            await self._cache_intelligence(customer_id, response)
+            # Add original support customer ID to response
+            response["support_customer_id"] = original_customer_id
+            response["ecommerce_customer_id"] = ecommerce_customer_id
+
+            # Cache result (using e-commerce ID as key)
+            await self._cache_intelligence(ecommerce_customer_id, response)
 
             logger.info(
-                f"Customer intelligence fetched for {customer_id}: "
+                f"✅ Customer intelligence fetched for {original_customer_id} "
+                f"(e-commerce ID: {ecommerce_customer_id}): "
                 f"archetype={response.get('archetype', {}).get('id')}, "
                 f"churn_risk={response.get('predictions', {}).get('churn_risk')}"
             )
@@ -169,9 +208,9 @@ class QuimbiClient:
             return response
 
         except QuimbiAPIError as e:
-            logger.error(f"Quimbi API error for customer {customer_id}: {e}")
+            logger.error(f"Quimbi API error for customer {ecommerce_customer_id}: {e}")
             # Return fallback data so app still works
-            return self._get_fallback_intelligence(customer_id)
+            return self._get_fallback_intelligence(original_customer_id)
 
     async def predict_churn(
         self,
