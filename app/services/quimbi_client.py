@@ -23,7 +23,7 @@ import asyncio
 from app.core.config import settings
 from app.services.cache import redis_client
 from app.services.customer_resolver import customer_resolver
-from app.database import get_db
+from app.models.database import get_db
 
 logger = logging.getLogger(__name__)
 
