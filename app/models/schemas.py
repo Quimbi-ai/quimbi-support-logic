@@ -36,7 +36,7 @@ class CustomerSchema(BaseModel):
 class TicketListSchema(BaseModel):
     """Ticket schema for list view."""
     id: str
-    customer_id: str
+    customer_id: Optional[str] = None  # Allow None for tickets without customer
     subject: str
     status: str
     priority: str
@@ -79,6 +79,8 @@ class TicketCreateSchema(BaseModel):
     priority: str = "normal"
     channel: str = "email"
     initial_message: str
+    author_name: Optional[str] = None
+    author_email: Optional[str] = None
 
 
 class MessageCreateSchema(BaseModel):
@@ -87,3 +89,9 @@ class MessageCreateSchema(BaseModel):
     from_agent: bool = True
     from_name: Optional[str] = None
     from_email: Optional[str] = None
+
+
+class TicketUpdateSchema(BaseModel):
+    """Schema for updating a ticket."""
+    status: Optional[str] = None
+    priority: Optional[str] = None
