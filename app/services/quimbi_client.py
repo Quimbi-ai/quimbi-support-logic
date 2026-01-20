@@ -71,7 +71,7 @@ class QuimbiClient:
         self.client = httpx.AsyncClient(
             base_url=self.base_url,
             headers={
-                'X-API-Key': self.api_key,
+                'X-Admin-Key': self.api_key,  # AI brain expects X-Admin-Key
                 'Content-Type': 'application/json'
             },
             timeout=self.timeout

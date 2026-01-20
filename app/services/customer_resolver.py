@@ -68,6 +68,56 @@ class CustomerResolver:
             return None
 
     @staticmethod
+    async def resolve_by_email(
+        db: AsyncSession,
+        email: str
+    ) -> Optional[int]:
+        """
+        Resolve customer by email to e-commerce customer ID.
+
+        This is critical for Gorgias integration where we only have email.
+
+        Args:
+            db: Database session
+            email: Customer email address
+
+        Returns:
+            E-commerce (Shopify) customer ID as integer, or None if not found
+
+        Example:
+            >>> ecommerce_id = await resolver.resolve_by_email(db, "emily.chen@example.com")
+            >>> print(ecommerce_id)
+            5971333382399
+        """
+        if not email:
+            return None
+
+        try:
+            # Try customer_alias first
+            result = await db.execute(
+                text("""
+                    SELECT ecommerce_customer_id
+                    FROM customer_alias
+                    WHERE LOWER(email) = LOWER(:email)
+                    LIMIT 1
+                """),
+                {"email": email}
+            )
+            row = result.fetchone()
+
+            if row:
+                ecommerce_id = row[0]
+                logger.info(f"Resolved customer by email: {email} → {ecommerce_id}")
+                return ecommerce_id
+
+            logger.warning(f"No customer mapping found for email: {email}")
+            return None
+
+        except Exception as e:
+            logger.error(f"Error resolving customer by email {email}: {e}", exc_info=True)
+            return None
+
+    @staticmethod
     async def get_mapping_info(
         db: AsyncSession,
         support_customer_id: str
