@@ -6,6 +6,7 @@ from app.models.schemas import (
     TicketListSchema,
     TicketDetailSchema,
     TicketCreateSchema,
+    TicketUpdateSchema,
     MessageCreateSchema,
 )
 
@@ -22,5 +23,6 @@ __all__ = [
     "TicketListSchema",
     "TicketDetailSchema",
     "TicketCreateSchema",
+    "TicketUpdateSchema",
     "MessageCreateSchema",
 ]
