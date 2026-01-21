@@ -213,8 +213,8 @@ async def main():
     sms_id = await create_sms_ticket()
     print()
 
-    groups_id = await create_google_groups_ticket()
-    print()
+    # groups_id = await create_google_groups_ticket()  # Disabled - not for demo
+    # print()
 
     print("=" * 80)
     print("✅ All test tickets created!")
