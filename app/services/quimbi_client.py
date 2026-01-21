@@ -410,8 +410,16 @@ class QuimbiClient:
             for msg in conversation
         ]
 
+        # Convert customer_id to int if it's a string (DB expects bigint)
+        customer_id = customer_profile.get("customer_id")
+        if customer_id and isinstance(customer_id, str):
+            try:
+                customer_id = int(customer_id)
+            except (ValueError, TypeError):
+                pass  # Keep as string if conversion fails
+
         request_body = {
-            "customer_id": customer_profile.get("customer_id"),
+            "customer_id": customer_id,
             "conversation_history": conversation_history,
             "goal": goal,
             "channel": channel,
