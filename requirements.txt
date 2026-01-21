@@ -23,9 +23,8 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-dotenv==1.0.1
 
-# AI & ML
+# AI & ML (NOTE: Support-logic proxies to AI Brain - no direct AI SDK calls)
 openai==1.56.0
-anthropic==0.42.0
 tiktoken==0.8.0
 
 # Background Jobs
