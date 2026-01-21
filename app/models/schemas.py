@@ -55,7 +55,7 @@ class TicketListSchema(BaseModel):
 class TicketDetailSchema(BaseModel):
     """Ticket schema for detail view."""
     id: str
-    customer_id: Optional[str] = None  # Allow None for tickets without customer
+    customer_id: str
     subject: str
     status: str
     priority: str
