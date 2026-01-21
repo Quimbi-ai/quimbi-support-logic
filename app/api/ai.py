@@ -235,18 +235,18 @@ async def get_draft_response(
         elif "Premium Buyer" in behaviors:
             requested_tone = "professional"  # Professional for premium customers
 
-        # Generate draft with Claude directly using full customer context
-        logger.info(f"Generating AI draft for ticket {ticket_id} with tone: {requested_tone}")
+        # Generate draft by proxying to AI brain
+        logger.info(f"Generating AI draft for ticket {ticket_id} via AI brain with tone: {requested_tone}")
         requested_channel = ticket.channel or "email"
 
-        draft_message = await generate_personalized_response_with_claude(
+        draft = await quimbi_client.generate_message(
             customer_profile=customer_profile,
-            ticket=ticket,
+            goal="resolve_support_issue",
             conversation=conversation,
-            tone=requested_tone
+            channel=requested_channel,
+            tone=requested_tone,
+            length="medium"
         )
-
-        draft = {"message": draft_message, "personalizations": {}}
 
         # Extract personalization details from the response
         personalizations = draft.get("personalizations", {})
@@ -260,10 +260,10 @@ async def get_draft_response(
 
         return {
             "ticket_id": ticket_id,
-            "draft": draft["message"],
-            "tone": requested_tone,
-            "channel": requested_channel,
-            "personalization_applied": personalization_list,
+            "draft": draft.get("message", ""),  # AI brain returns "message" field
+            "tone": draft.get("tone", requested_tone),
+            "channel": draft.get("channel", requested_channel),
+            "personalization_applied": draft.get("personalization_applied", []),
             "customer_dna": customer_intel.get("dominant_segments", {}),
             "behaviors": behaviors,  # Add behavioral traits for frontend display
             "churn_risk": customer_intel.get("churn_risk", {}).get("score", 0.5),
