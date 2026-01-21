@@ -132,8 +132,11 @@ async def get_draft_response(
         requested_channel = ticket.channel or "email"
 
         # Call AI Brain via quimbi_client
+        # AI Brain expects customer_id as string, not full profile
+        customer_id_for_brain = str(ticket.customer_id) if ticket.customer_id else None
+
         draft_response = await quimbi_client.generate_message(
-            customer_profile=customer_intel,
+            customer_profile={"customer_id": customer_id_for_brain} if customer_id_for_brain else {},
             goal="resolve_support_issue",
             conversation=conversation,
             channel=requested_channel,
